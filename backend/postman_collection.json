@@ -1,0 +1,231 @@
+{
+  "info": {
+    "name": "Restaurant Reservation System API",
+    "_postman_id": "rrs-api-v1",
+    "description": "All API endpoints for the Restaurant Reservation System backend (port 7000)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:7000", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Customers",
+      "item": [
+        {
+          "name": "Create Customer",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/customers",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"secret123\",\n  \"mobileNumber\": \"+94771234567\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Customers",
+          "request": { "method": "GET", "url": "{{base_url}}/customers" }
+        },
+        {
+          "name": "Get Customer by ID",
+          "request": { "method": "GET", "url": "{{base_url}}/customers/1" }
+        },
+        {
+          "name": "Update Customer",
+          "request": {
+            "method": "PATCH",
+            "url": "{{base_url}}/customers/1",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"firstName\": \"Jane\"\n}" }
+          }
+        },
+        {
+          "name": "Delete Customer",
+          "request": { "method": "DELETE", "url": "{{base_url}}/customers/1" }
+        }
+      ]
+    },
+    {
+      "name": "Restaurants",
+      "item": [
+        {
+          "name": "Create Restaurant",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/restaurants",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"The Grand Palace\",\n  \"address\": \"123 Main St, Colombo\",\n  \"phone\": \"+94112345678\",\n  \"email\": \"admin@grandpalace.com\",\n  \"password\": \"admin123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Restaurants",
+          "request": { "method": "GET", "url": "{{base_url}}/restaurants" }
+        },
+        {
+          "name": "Get Restaurant by ID",
+          "request": { "method": "GET", "url": "{{base_url}}/restaurants/1" }
+        },
+        {
+          "name": "Update Restaurant",
+          "request": {
+            "method": "PATCH",
+            "url": "{{base_url}}/restaurants/1",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"isActive\": false\n}" }
+          }
+        },
+        {
+          "name": "Delete Restaurant",
+          "request": { "method": "DELETE", "url": "{{base_url}}/restaurants/1" }
+        }
+      ]
+    },
+    {
+      "name": "Tables",
+      "item": [
+        {
+          "name": "Create Table",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/tables",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"restaurantId\": 1,\n  \"tableNumber\": 5,\n  \"capacity\": 4,\n  \"location\": \"Ground Floor\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Tables by Restaurant",
+          "request": { "method": "GET", "url": "{{base_url}}/tables/restaurant/1" }
+        },
+        {
+          "name": "Get All Tables",
+          "request": { "method": "GET", "url": "{{base_url}}/tables" }
+        },
+        {
+          "name": "Update Table",
+          "request": {
+            "method": "PATCH",
+            "url": "{{base_url}}/tables/1",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"isActive\": false\n}" }
+          }
+        },
+        {
+          "name": "Delete Table",
+          "request": { "method": "DELETE", "url": "{{base_url}}/tables/1" }
+        }
+      ]
+    },
+    {
+      "name": "Menu",
+      "item": [
+        {
+          "name": "Create Category",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/menu/categories",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"restaurantId\": 1,\n  \"name\": \"Main Course\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Categories by Restaurant",
+          "request": { "method": "GET", "url": "{{base_url}}/menu/categories/restaurant/1" }
+        },
+        {
+          "name": "Delete Category",
+          "request": { "method": "DELETE", "url": "{{base_url}}/menu/categories/1" }
+        },
+        {
+          "name": "Create Menu Item",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/menu/items",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"restaurantId\": 1,\n  \"categoryId\": 1,\n  \"name\": \"Grilled Chicken\",\n  \"description\": \"Tender grilled chicken with herbs\",\n  \"price\": 1200,\n  \"isAvailable\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Menu Items by Restaurant",
+          "request": { "method": "GET", "url": "{{base_url}}/menu/items/restaurant/1" }
+        },
+        {
+          "name": "Get Menu Item by ID",
+          "request": { "method": "GET", "url": "{{base_url}}/menu/items/1" }
+        },
+        {
+          "name": "Update Menu Item",
+          "request": {
+            "method": "PATCH",
+            "url": "{{base_url}}/menu/items/1",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"price\": 1500,\n  \"isAvailable\": false\n}" }
+          }
+        },
+        {
+          "name": "Delete Menu Item",
+          "request": { "method": "DELETE", "url": "{{base_url}}/menu/items/1" }
+        }
+      ]
+    },
+    {
+      "name": "Reservations",
+      "item": [
+        {
+          "name": "Create Reservation",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/reservations",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"restaurantId\": 1,\n  \"customerId\": 1,\n  \"tableId\": 1,\n  \"reservationDate\": \"2026-02-25\",\n  \"startTime\": \"18:00\",\n  \"endTime\": \"20:00\",\n  \"guestCount\": 3,\n  \"specialRequest\": \"Window seat please\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Reservations",
+          "request": { "method": "GET", "url": "{{base_url}}/reservations" }
+        },
+        {
+          "name": "Get Reservations by Restaurant",
+          "request": { "method": "GET", "url": "{{base_url}}/reservations/restaurant/1" }
+        },
+        {
+          "name": "Get Reservations by Customer",
+          "request": { "method": "GET", "url": "{{base_url}}/reservations/customer/1" }
+        },
+        {
+          "name": "Get Reservation by ID",
+          "request": { "method": "GET", "url": "{{base_url}}/reservations/1" }
+        },
+        {
+          "name": "Update Reservation Status",
+          "request": {
+            "method": "PATCH",
+            "url": "{{base_url}}/reservations/1",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"CONFIRMED\"\n}" }
+          }
+        },
+        {
+          "name": "Delete Reservation",
+          "request": { "method": "DELETE", "url": "{{base_url}}/reservations/1" }
+        }
+      ]
+    }
+  ]
+}
