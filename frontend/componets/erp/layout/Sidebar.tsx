@@ -10,6 +10,8 @@ import {
   TableIcon,
   UserCog,
   ChefHat,
+  BarChart3,
+  Shield,
 } from 'lucide-react';
 import { useAuthStore } from '@/lib/store/auth.store';
 import { useSidebarStore } from '@/lib/store/sidebar.store';
@@ -50,6 +52,18 @@ const navItems = [
     label: 'Staff',
     href: '/erp/staff',
     icon: UserCog,
+    roles: ['ADMIN'],
+  },
+  {
+    label: 'Reports',
+    href: '/erp/reports',
+    icon: BarChart3,
+    roles: ['ADMIN', 'MANAGER'],
+  },
+  {
+    label: 'Roles & Permissions',
+    href: '/erp/roles',
+    icon: Shield,
     roles: ['ADMIN'],
   },
 ];
