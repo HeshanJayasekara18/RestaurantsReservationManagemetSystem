@@ -3,13 +3,16 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/auth.store';
+import { useSidebarStore } from '@/lib/store/sidebar.store';
 import { Sidebar } from '@/componets/erp/layout/Sidebar';
 import { Topbar } from '@/componets/erp/layout/Topbar';
-import { Toaster } from '@/components/ui/sonner';
+import { Toaster } from '@/ui/sonner';
+import { cn } from '@/lib/utils';
 
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated());
+  const isOpen = useSidebarStore((s) => s.isOpen);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -26,11 +29,14 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-background text-foreground">
       <Sidebar />
       <Topbar />
       {/* Main content pushed right of sidebar and below topbar */}
-      <main className="ml-60 pt-14 min-h-screen">
+      <main className={cn(
+        "pt-14 min-h-screen transition-all duration-300 ease-in-out",
+        isOpen ? "ml-60" : "ml-0"
+      )}>
         <div className="p-6">{children}</div>
       </main>
       <Toaster richColors position="top-right" />
