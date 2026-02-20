@@ -50,10 +50,15 @@ export class AuthService {
     const staff = await this.prisma.staff.findUnique({
       where: { email: dto.email },
     });
-    if (!staff || !staff.isActive)
+
+    if (!staff || !staff.isActive) {
       throw new UnauthorizedException('Invalid credentials');
-    if (!await bcrypt.compare(dto.password, staff.password))
+    }
+
+    const isMatch = await bcrypt.compare(dto.password, staff.password);
+    if (!isMatch) {
       throw new UnauthorizedException('Invalid credentials');
+    }
 
     const payload = { sub: staff.id, email: staff.email, role: staff.role };
     return {
