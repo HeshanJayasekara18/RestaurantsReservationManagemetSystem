@@ -1,0 +1,419 @@
+{
+  "info": {
+    "name": "Restaurant Reservation System",
+    "description": "Full API collection for the Restaurant Reservation System backend.\n\nBase URL: http://localhost:7000\n\n## Setup\n1. Import this file into Postman\n2. Set the collection variable `baseUrl` to your server URL (default: http://localhost:7000)\n3. Use the login endpoints first — the token is saved automatically to `staffToken` or `customerToken`\n4. All protected routes automatically use the saved token via the collection-level Auth header.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:7000", "type": "string" },
+    { "key": "staffToken", "value": "", "type": "string" },
+    { "key": "customerToken", "value": "", "type": "string" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{staffToken}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "🔑 Auth",
+      "item": [
+        {
+          "name": "Login Staff",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.access_token) {",
+                  "  pm.collectionVariables.set('staffToken', res.access_token);",
+                  "  console.log('Staff token saved!');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@savorhouse.com\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login/staff", "host": ["{{baseUrl}}"], "path": ["auth", "login", "staff"] }
+          }
+        },
+        {
+          "name": "Login Customer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.access_token) {",
+                  "  pm.collectionVariables.set('customerToken', res.access_token);",
+                  "  console.log('Customer token saved!');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"pass123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login/customer", "host": ["{{baseUrl}}"], "path": ["auth", "login", "customer"] }
+          }
+        },
+        {
+          "name": "Register Customer",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"pass123\",\n  \"mobileNumber\": \"+94771234567\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/register/customer", "host": ["{{baseUrl}}"], "path": ["auth", "register", "customer"] }
+          }
+        },
+        {
+          "name": "Create Staff (ADMIN only)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Bob Waiter\",\n  \"email\": \"bob@savorhouse.com\",\n  \"password\": \"staff123\",\n  \"role\": \"WAITER\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/staff", "host": ["{{baseUrl}}"], "path": ["auth", "staff"] }
+          }
+        },
+        {
+          "name": "List All Staff (ADMIN only)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/auth/staff", "host": ["{{baseUrl}}"], "path": ["auth", "staff"] }
+          }
+        },
+        {
+          "name": "Get Me (any authenticated role)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth", "me"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏠 Restaurants",
+      "item": [
+        {
+          "name": "List All Restaurants (Public)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/restaurants", "host": ["{{baseUrl}}"], "path": ["restaurants"] }
+          }
+        },
+        {
+          "name": "Get Restaurant by ID (Public)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/restaurants/1", "host": ["{{baseUrl}}"], "path": ["restaurants", "1"] }
+          }
+        },
+        {
+          "name": "Create Restaurant (ADMIN)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Savor House\",\n  \"address\": \"42 Galle Rd, Colombo 03\",\n  \"phone\": \"+94112345678\",\n  \"email\": \"info@savorhouse.com\",\n  \"password\": \"rest_secret\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/restaurants", "host": ["{{baseUrl}}"], "path": ["restaurants"] }
+          }
+        },
+        {
+          "name": "Update Restaurant (ADMIN)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+94119876543\",\n  \"address\": \"45 Galle Rd, Colombo 03\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/restaurants/1", "host": ["{{baseUrl}}"], "path": ["restaurants", "1"] }
+          }
+        },
+        {
+          "name": "Delete Restaurant (ADMIN)",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/restaurants/1", "host": ["{{baseUrl}}"], "path": ["restaurants", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👥 Customers",
+      "item": [
+        {
+          "name": "List All Customers (ADMIN, MANAGER)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/customers", "host": ["{{baseUrl}}"], "path": ["customers"] }
+          }
+        },
+        {
+          "name": "Get Customer by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/customers/1", "host": ["{{baseUrl}}"], "path": ["customers", "1"] }
+          }
+        },
+        {
+          "name": "Update Customer",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mobileNumber\": \"+94770000001\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/customers/1", "host": ["{{baseUrl}}"], "path": ["customers", "1"] }
+          }
+        },
+        {
+          "name": "Delete Customer (ADMIN)",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/customers/1", "host": ["{{baseUrl}}"], "path": ["customers", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🪑 Tables",
+      "item": [
+        {
+          "name": "List All Tables (Public)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/tables", "host": ["{{baseUrl}}"], "path": ["tables"] }
+          }
+        },
+        {
+          "name": "Tables by Restaurant (Public)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/tables/restaurant/1", "host": ["{{baseUrl}}"], "path": ["tables", "restaurant", "1"] }
+          }
+        },
+        {
+          "name": "Get Table by ID (Public)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/tables/1", "host": ["{{baseUrl}}"], "path": ["tables", "1"] }
+          }
+        },
+        {
+          "name": "Create Table (ADMIN, MANAGER)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"restaurantId\": 1,\n  \"tableNumber\": 5,\n  \"capacity\": 4,\n  \"location\": \"Window side\",\n  \"isActive\": true\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/tables", "host": ["{{baseUrl}}"], "path": ["tables"] }
+          }
+        },
+        {
+          "name": "Update Table (ADMIN, MANAGER)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"capacity\": 6,\n  \"location\": \"Garden\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/tables/1", "host": ["{{baseUrl}}"], "path": ["tables", "1"] }
+          }
+        },
+        {
+          "name": "Delete Table (ADMIN, MANAGER)",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/tables/1", "host": ["{{baseUrl}}"], "path": ["tables", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📅 Reservations",
+      "item": [
+        {
+          "name": "Create Reservation (CUSTOMER)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"restaurantId\": 1,\n  \"customerId\": 1,\n  \"tableId\": 1,\n  \"reservationDate\": \"2026-03-10\",\n  \"startTime\": \"2026-03-10T18:00:00.000Z\",\n  \"endTime\": \"2026-03-10T20:00:00.000Z\",\n  \"guestCount\": 4,\n  \"specialRequest\": \"Window seat preferred, nut allergy\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/reservations", "host": ["{{baseUrl}}"], "path": ["reservations"] }
+          }
+        },
+        {
+          "name": "List All Reservations (ADMIN, MANAGER, WAITER)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/reservations", "host": ["{{baseUrl}}"], "path": ["reservations"] }
+          }
+        },
+        {
+          "name": "Reservations by Restaurant",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/reservations/restaurant/1", "host": ["{{baseUrl}}"], "path": ["reservations", "restaurant", "1"] }
+          }
+        },
+        {
+          "name": "Reservations by Customer",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }]
+            },
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/reservations/customer/1", "host": ["{{baseUrl}}"], "path": ["reservations", "customer", "1"] }
+          }
+        },
+        {
+          "name": "Get Reservation by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/reservations/1", "host": ["{{baseUrl}}"], "path": ["reservations", "1"] }
+          }
+        },
+        {
+          "name": "Update Reservation (confirm/reschedule)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"CONFIRMED\",\n  \"tableId\": 2,\n  \"guestCount\": 5\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/reservations/1", "host": ["{{baseUrl}}"], "path": ["reservations", "1"] }
+          }
+        },
+        {
+          "name": "Delete Reservation (cancel)",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/reservations/1", "host": ["{{baseUrl}}"], "path": ["reservations", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🍴 Menu",
+      "item": [
+        {
+          "name": "Create Category (ADMIN, MANAGER)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"restaurantId\": 1,\n  \"name\": \"Starters\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/menu/categories", "host": ["{{baseUrl}}"], "path": ["menu", "categories"] }
+          }
+        },
+        {
+          "name": "List Categories by Restaurant (Public)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/menu/categories/restaurant/1", "host": ["{{baseUrl}}"], "path": ["menu", "categories", "restaurant", "1"] }
+          }
+        },
+        {
+          "name": "Delete Category (ADMIN, MANAGER)",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/menu/categories/1", "host": ["{{baseUrl}}"], "path": ["menu", "categories", "1"] }
+          }
+        },
+        {
+          "name": "Create Menu Item (ADMIN, MANAGER)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"restaurantId\": 1,\n  \"categoryId\": 1,\n  \"name\": \"Grilled Salmon\",\n  \"description\": \"Atlantic salmon with lemon butter sauce\",\n  \"price\": 2850.00,\n  \"imageUrl\": \"https://cdn.savorhouse.com/images/salmon.jpg\",\n  \"isAvailable\": true\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/menu/items", "host": ["{{baseUrl}}"], "path": ["menu", "items"] }
+          }
+        },
+        {
+          "name": "List Menu Items by Restaurant (Public)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/menu/items/restaurant/1", "host": ["{{baseUrl}}"], "path": ["menu", "items", "restaurant", "1"] }
+          }
+        },
+        {
+          "name": "Get Menu Item by ID (Public)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/menu/items/1", "host": ["{{baseUrl}}"], "path": ["menu", "items", "1"] }
+          }
+        },
+        {
+          "name": "Update Menu Item (ADMIN, MANAGER)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 3100.00,\n  \"isAvailable\": false\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/menu/items/1", "host": ["{{baseUrl}}"], "path": ["menu", "items", "1"] }
+          }
+        },
+        {
+          "name": "Delete Menu Item (ADMIN, MANAGER)",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/menu/items/1", "host": ["{{baseUrl}}"], "path": ["menu", "items", "1"] }
+          }
+        }
+      ]
+    }
+  ]
+}

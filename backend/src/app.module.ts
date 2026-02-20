@@ -11,12 +11,14 @@ import { RestaurantsModule } from './restaurants/restaurants.module';
 import { ReservationsModule } from './reservations/reservations.module';
 import { MenuModule } from './menu/menu.module';
 import { TablesModule } from './tables/tables.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     SupabaseModule,
     PrismaModule,
+    AuthModule,
     CustomersModule,
     RestaurantsModule,
     ReservationsModule,

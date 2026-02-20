@@ -9,8 +9,20 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+//////////////////////
+// ENUMS
+//////////////////////
+
+enum StaffRole {
+  ADMIN    // Full access — restaurant owner
+  MANAGER  // Manage staff, menu, tables, reservations
+  WAITER   // View & manage assigned reservations/orders
+  KITCHEN  // Read-only access to orders
 }
 
 //////////////////////
@@ -23,7 +35,6 @@ model Restaurant {
   address       String
   phone         String
   email         String                  @unique
-  password      String
   isActive      Boolean                 @default(true)
   createdAt     DateTime                @default(now())
 
@@ -34,6 +45,16 @@ model Restaurant {
   promotions    Promotion[]
   subscriptions RestaurantSubscription[]
   payments      Payment[]
+}
+
+model Staff {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  password  String
+  role      StaffRole @default(WAITER)
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
 }
 
 model Customer {

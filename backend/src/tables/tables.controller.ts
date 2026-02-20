@@ -1,17 +1,16 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { TablesService } from './tables.service';
 import { CreateTableDto } from './dto/create-table.dto';
 import { UpdateTableDto } from './dto/update-table.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 
 @Controller('tables')
 export class TablesController {
   constructor(private readonly tablesService: TablesService) {}
 
-  @Post()
-  create(@Body() dto: CreateTableDto) {
-    return this.tablesService.create(dto);
-  }
-
+  /** Table browsing is public so customers can see availability info */
   @Get()
   findAll() {
     return this.tablesService.findAll();
@@ -27,11 +26,23 @@ export class TablesController {
     return this.tablesService.findOne(id);
   }
 
+  /** Only ADMIN and MANAGER can create/update/delete tables */
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'MANAGER')
+  @Post()
+  create(@Body() dto: CreateTableDto) {
+    return this.tablesService.create(dto);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'MANAGER')
   @Patch(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateTableDto) {
     return this.tablesService.update(id, dto);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'MANAGER')
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.tablesService.remove(id);
