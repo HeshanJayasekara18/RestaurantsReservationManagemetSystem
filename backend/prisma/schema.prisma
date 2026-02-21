@@ -25,6 +25,12 @@ enum StaffRole {
   KITCHEN  // Read-only access to orders
 }
 
+model RolePermission {
+  id          Int       @id @default(autoincrement())
+  role        StaffRole @unique
+  permissions String[]  // Array of permission strings
+}
+
 //////////////////////
 // CORE ENTITIES
 //////////////////////

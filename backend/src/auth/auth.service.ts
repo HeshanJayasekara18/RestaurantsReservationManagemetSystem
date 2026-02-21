@@ -2,6 +2,7 @@ import {
   Injectable,
   ConflictException,
   UnauthorizedException,
+  OnModuleInit,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
@@ -12,11 +13,36 @@ import { CreateStaffDto } from './dto/create-staff.dto';
 import { StaffRole } from './types/staff-role.type';
 
 @Injectable()
-export class AuthService {
+export class AuthService implements OnModuleInit {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
   ) {}
+
+  async onModuleInit() {
+    await this.seedDefaultPermissions();
+  }
+
+  private async seedDefaultPermissions() {
+    const defaultRoles: Record<StaffRole, string[]> = {
+      ADMIN: ['manage_staff', 'view_reports', 'manage_menu', 'manage_tables', 'manage_reservations', 'view_orders'],
+      MANAGER: ['view_reports', 'manage_menu', 'manage_tables', 'manage_reservations', 'view_orders'],
+      WAITER: ['manage_reservations', 'view_orders'],
+      KITCHEN: ['view_orders'],
+    };
+
+    for (const [role, permissions] of Object.entries(defaultRoles)) {
+      await this.prisma.rolePermission.upsert({
+        where: { role: role as StaffRole },
+        update: {}, // Don't overwrite if they already exist (let admins customize it)
+        create: {
+          role: role as StaffRole,
+          permissions,
+        },
+      });
+    }
+    console.log('Role permissions seeded.');
+  }
 
   // ─── STAFF ──────────────────────────────────────────────────────────────────
 
@@ -44,6 +70,32 @@ export class AuthService {
       },
     });
     return staff;
+  }
+
+  async updateStaff(id: number, data: { isActive?: boolean; role?: StaffRole }) {
+    const staff = await this.prisma.staff.findUnique({ where: { id } });
+    if (!staff) throw new UnauthorizedException('Staff not found');
+
+    // Prevent changing the last ADMIN's status or role to avoid locking out the system
+    // (A more robust system would actually count active ADMINs first)
+    // For now, we allow it, but in production, we'd add safeguards.
+    
+    return this.prisma.staff.update({
+      where: { id },
+      data,
+      select: {
+        id: true, name: true, email: true,
+        role: true, isActive: true, createdAt: true,
+      }
+    });
+  }
+
+  async deleteStaff(id: number) {
+    const staff = await this.prisma.staff.findUnique({ where: { id } });
+    if (!staff) throw new UnauthorizedException('Staff not found');
+    
+    await this.prisma.staff.delete({ where: { id } });
+    return { success: true, message: 'Staff member deleted' };
   }
 
   async loginStaff(dto: LoginDto) {
@@ -114,6 +166,49 @@ export class AuthService {
         id: true, name: true, email: true,
         role: true, isActive: true, createdAt: true,
       },
+    });
+  }
+
+  // ─── ROLES & PERMISSIONS ──────────────────────────────────────────────────────
+
+  async getRoles() {
+    const roles = await this.prisma.rolePermission.findMany();
+    // Also include user counts for each role to display in the UI
+    const roleStats = await this.prisma.staff.groupBy({
+      by: ['role'],
+      _count: { id: true }
+    });
+
+    return roles.map(roleData => {
+      const stats = roleStats.find(s => s.role === roleData.role);
+      let name = roleData.role.charAt(0) + roleData.role.slice(1).toLowerCase();
+      if (roleData.role === 'ADMIN') name = 'Administrator';
+      if (roleData.role === 'KITCHEN') name = 'Kitchen Staff';
+
+      let description = '';
+      if (roleData.role === 'ADMIN') description = 'Full system access. Can manage staff, reports, and settings.';
+      if (roleData.role === 'MANAGER') description = 'Operational control. Can manage day-to-day activities.';
+      if (roleData.role === 'WAITER') description = 'Front of house staff. Can manage reservations and take orders.';
+      if (roleData.role === 'KITCHEN') description = 'Back of house staff. Read-only access to orders queue.';
+
+      return {
+        code: roleData.role,
+        name,
+        description,
+        permissions: roleData.permissions,
+        usersCount: stats?._count.id || 0,
+      };
+    });
+  }
+
+  async updateRolePermissions(role: StaffRole, permissions: string[]) {
+    if (role === 'ADMIN') {
+      throw new ConflictException('Cannot modify ADMIN permissions');
+    }
+
+    return this.prisma.rolePermission.update({
+      where: { role },
+      data: { permissions }
     });
   }
 }

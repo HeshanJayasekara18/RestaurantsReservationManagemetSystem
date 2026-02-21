@@ -1,0 +1,2 @@
+﻿componets/erp/tables/TablesView.tsx(57,49): error TS2367: This comparison appears to be unintentional because the types '"AVAILABLE" | "RESERVED" | "MAINTENANCE"' and '"OCCUPIED"' have no overlap.
+ui/calendar.tsx(57,9): error TS2353: Object literal may only specify known properties, and 'IconLeft' does not exist in type 'Partial<CustomComponents>'.

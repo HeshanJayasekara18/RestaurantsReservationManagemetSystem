@@ -1,9 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { Search, Mail, Phone, MoreHorizontal, Trophy, UserPlus, Gift, Send } from 'lucide-react';
-import { Customer } from '@/lib/types';
+import { Search, Mail, Phone, MoreHorizontal, Trophy, UserPlus, Gift, Send, Loader2 } from 'lucide-react';
 import { Input } from '@/ui/input';
 import { Button } from '@/ui/button';
 import { Badge } from '@/ui/badge';
@@ -35,24 +34,21 @@ import {
 } from '@/ui/dialog';
 import { CustomerStats } from './CustomerStats';
 import { toast } from 'sonner';
-
-// Mock Data
-const mockCustomers: Customer[] = Array.from({ length: 15 }).map((_, i) => ({
-  id: 100 + i,
-  firstName: ['Alice', 'Bob', 'Charlie', 'Diana', 'Eve', 'Frank', 'Grace', 'Henry', 'Ivy', 'Jack'][i % 10],
-  lastName: ['Smith', 'Jones', 'Williams', 'Brown', 'Davis', 'Miller', 'Wilson', 'Moore', 'Taylor', 'Anderson'][i % 10],
-  email: `customer${100 + i}@example.com`,
-  mobileNumber: `555-010${i}`,
-  loyaltyPoints: Math.floor(Math.random() * 500),
-  createdAt: new Date(Date.now() - Math.floor(Math.random() * 10000000000)).toISOString()
-}));
+import { useCustomerStore } from '@/lib/store/customerStore';
+import { AddCustomerDialog } from './AddCustomerDialog';
 
 export function CustomersView() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [customers, setCustomers] = useState<Customer[]>(mockCustomers);
   const [isOfferDialogOpen, setIsOfferDialogOpen] = useState(false);
+  const [isAddCustomerOpen, setIsAddCustomerOpen] = useState(false);
   const [offerDetails, setOfferDetails] = useState({ title: '', description: '', discount: '' });
   const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
+
+  const { customers, isLoading, fetchCustomers, deleteCustomer } = useCustomerStore();
+
+  useEffect(() => {
+    fetchCustomers();
+  }, [fetchCustomers]);
 
   const filteredCustomers = customers.filter(c => 
     c.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -84,7 +80,7 @@ export function CustomersView() {
           <p className="text-muted-foreground text-sm">View and manage customer details and loyalty points.</p>
         </div>
         <div className="flex items-center gap-2 w-full md:w-auto">
-             <Button className="bg-primary hover:bg-primary/90">
+             <Button className="bg-primary hover:bg-primary/90" onClick={() => setIsAddCustomerOpen(true)}>
                  <UserPlus className="h-4 w-4 mr-2" /> Add Customer
              </Button>
         </div>
@@ -169,7 +165,9 @@ export function CustomersView() {
                                 <DropdownMenuItem>View History</DropdownMenuItem>
                                 <DropdownMenuItem>Edit Details</DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-destructive">Delete Customer</DropdownMenuItem>
+                                <DropdownMenuItem className="text-destructive" onClick={() => deleteCustomer(customer.id)}>
+                                  Delete Customer
+                                </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </TableCell>
@@ -178,7 +176,7 @@ export function CustomersView() {
             ) : (
                 <TableRow>
                     <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                        No customers found.
+                        {isLoading ? <span className="flex items-center justify-center gap-2"><Loader2 className="h-4 w-4 animate-spin"/> Loading customers...</span> : 'No customers found.'}
                     </TableCell>
                 </TableRow>
             )}
@@ -238,6 +236,8 @@ export function CustomersView() {
             </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      <AddCustomerDialog open={isAddCustomerOpen} onOpenChange={setIsAddCustomerOpen} />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { 
   MoreHorizontal, 
@@ -35,14 +35,7 @@ import {
 import { AddStaffDialog } from './AddStaffDialog';
 import { toast } from 'sonner';
 
-// Mock Data
-const mockStaff: Staff[] = [
-  { id: 1, name: 'Admin User', email: 'admin@savorhouse.com', role: 'ADMIN', isActive: true, createdAt: new Date().toISOString() },
-  { id: 2, name: 'John Manager', email: 'manager@savorhouse.com', role: 'MANAGER', isActive: true, createdAt: new Date().toISOString() },
-  { id: 3, name: 'Alice Waiter', email: 'alice@savorhouse.com', role: 'WAITER', isActive: true, createdAt: new Date().toISOString() },
-  { id: 4, name: 'Bob Kitchen', email: 'bob@savorhouse.com', role: 'KITCHEN', isActive: true, createdAt: new Date().toISOString() },
-  { id: 5, name: 'Charlie Waiter', email: 'charlie@savorhouse.com', role: 'WAITER', isActive: false, createdAt: new Date().toISOString() },
-];
+import { useStaffStore } from '@/lib/store/staffStore';
 
 const roleIcons = {
   ADMIN: Shield,
@@ -59,29 +52,22 @@ const roleColors = {
 };
 
 export function StaffView() {
-  const [staffList, setStaffList] = useState<Staff[]>(mockStaff);
+  const { staffList, fetchStaff, createStaff, updateStaffStatus, deleteStaff, isLoading } = useStaffStore();
+
+  React.useEffect(() => {
+    fetchStaff();
+  }, [fetchStaff]);
 
   const handleAddStaff = async (data: any) => {
-    // Mock API call
-    console.log('Adding staff:', data);
-    const newStaff: Staff = {
-      id: staffList.length + 1,
-      ...data,
-      isActive: true,
-      createdAt: new Date().toISOString(),
-    };
-    setStaffList([...staffList, newStaff]);
-    toast.success(`Staff member ${data.name} created successfully!`);
+    await createStaff(data);
   };
 
-  const handleDelete = (id: number) => {
-    setStaffList(staffList.filter(s => s.id !== id));
-    toast.success('Staff member removed.');
+  const handleDelete = async (id: number) => {
+    await deleteStaff(id);
   };
 
-  const handleToggleStatus = (id: number) => {
-    setStaffList(staffList.map(s => s.id === id ? { ...s, isActive: !s.isActive } : s));
-    toast.success('Staff status updated.');
+  const handleToggleStatus = async (id: number, currentStatus: boolean) => {
+    await updateStaffStatus(id, !currentStatus);
   };
 
   return (
@@ -150,7 +136,7 @@ export function StaffView() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => handleToggleStatus(staff.id)}>
+                        <DropdownMenuItem onClick={() => handleToggleStatus(staff.id, staff.isActive)}>
                             {staff.isActive ? 'Deactivate Account' : 'Activate Account'}
                         </DropdownMenuItem>
                         <DropdownMenuItem>Reset Password</DropdownMenuItem>
@@ -166,6 +152,13 @@ export function StaffView() {
                 </TableRow>
               );
             })}
+            {staffList.length === 0 && (
+              <TableRow>
+                 <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                    {isLoading ? 'Loading staff...' : 'No staff members found.'}
+                 </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>

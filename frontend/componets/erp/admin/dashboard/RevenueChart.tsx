@@ -1,31 +1,21 @@
 'use client';
 
-import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from 'recharts'; // Added CartesianGrid
+import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/ui/card';
 import { Button } from '@/ui/button';
 import { ArrowUpRight } from 'lucide-react';
 
-const data = [
-  { time: '10am', revenue: 400 },
-  { time: '11am', revenue: 300 },
-  { time: '12pm', revenue: 850 },
-  { time: '1pm', revenue: 1200 },
-  { time: '2pm', revenue: 900 },
-  { time: '3pm', revenue: 600 },
-  { time: '4pm', revenue: 450 },
-  { time: '5pm', revenue: 700 },
-  { time: '6pm', revenue: 1100 },
-  { time: '7pm', revenue: 1400 },
-  { time: '8pm', revenue: 1350 },
-];
+interface RevenueChartProps {
+  data: { name: string; revenue: number }[];
+}
 
-export function RevenueChart() {
+export function RevenueChart({ data }: RevenueChartProps) {
   return (
     <Card className="col-span-4 lg:col-span-3 bg-card border-border">
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
            <CardTitle className="text-card-foreground">Revenue Trends</CardTitle>
-           <CardDescription className="text-muted-foreground">Hourly sales performance today</CardDescription>
+           <CardDescription className="text-muted-foreground">Monthly revenue performance</CardDescription>
         </div>
         <Button variant="outline" size="sm" className="hidden sm:flex border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground">
           View Report <ArrowUpRight className="ml-2 h-4 w-4" />
@@ -42,7 +32,7 @@ export function RevenueChart() {
                 </linearGradient>
               </defs>
               <XAxis 
-                dataKey="time" 
+                dataKey="name" 
                 stroke="#888888" 
                 tickLine={false} 
                 axisLine={false}

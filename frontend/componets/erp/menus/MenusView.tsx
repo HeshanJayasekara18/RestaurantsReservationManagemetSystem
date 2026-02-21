@@ -16,141 +16,30 @@ import { Button } from '@/ui/button';
 import { MenuCategory } from './MenuCategory';
 import { MenuItemCard } from './MenuItemCard';
 
-// Mock Data
-const categories = [
-  { id: 'burger', label: 'Burger', icon: Sandwich },
-  { id: 'pizza', label: 'Pizza', icon: Pizza },
-  { id: 'beverage', label: 'Beverage', icon: Coffee },
-  { id: 'chicken', label: 'Chicken', icon: UtensilsCrossed },
-  { id: 'bakery', label: 'Bakery', icon: Dessert },
-  { id: 'seafood', label: 'Seafood', icon: UtensilsCrossed },
-];
-
-const popularItems = [
-    {
-        id: 1,
-        name: 'Fish Burger',
-        description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor...',
-        price: 5.59,
-        image: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?q=80&w=600&auto=format&fit=crop', // Burger/Sushi
-        rating: 5.0,
-        reviews: '1k+ User Reviews',
-    },
-    {
-        id: 2,
-        name: 'Double Burger',
-        description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor...',
-        price: 5.59,
-        image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=600&auto=format&fit=crop', // Burger
-        rating: 5.0,
-        reviews: '1k+ User Reviews',
-    },
-    {
-        id: 3,
-        name: 'Beef Burger',
-        description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor...',
-        price: 5.59,
-        image: 'https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=600&auto=format&fit=crop', // Burger
-        rating: 5.0,
-        reviews: '1k+ User Reviews',
-    },
-    {
-        id: 4,
-        name: 'Cheese Burger',
-        description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor...',
-        price: 5.59,
-        image: 'https://images.unsplash.com/photo-1551782450-a2132b4ba21d?q=80&w=600&auto=format&fit=crop', // Burger
-        rating: 5.0,
-        reviews: '1k+ User Reviews',
-    },
-];
-
-const bestSellers = [
-    {
-        id: 11,
-        name: 'Pepperoni Pizza',
-        price: 5.59,
-        description: 'Classic pepperoni pizza with extra cheese.',
-        image: 'https://images.unsplash.com/photo-1628840042765-356cda07504e?q=80&w=600&auto=format&fit=crop',
-        rating: 4.8,
-        reviews: '800+ Reviews',
-        sales: '1k',
-        trend: '+15%'
-    },
-    {
-        id: 12,
-        name: 'Japanese Ramen',
-        price: 5.59,
-        description: 'Traditional ramen with pork broth.',
-        image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?q=80&w=600&auto=format&fit=crop',
-        rating: 4.9,
-        reviews: '1.2k+ Reviews',
-        sales: '1k',
-        trend: '+15%'
-    },
-    {
-        id: 13,
-        name: 'Fried Rice',
-        price: 5.59,
-        description: 'Egg fried rice with green onions.',
-        image: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?q=80&w=600&auto=format&fit=crop',
-        rating: 4.7,
-        reviews: '500+ Reviews',
-        sales: '1k',
-        trend: '+15%'
-    },
-    {
-        id: 14,
-        name: 'Vegan Pizza',
-        price: 5.59,
-        description: 'Gluten-free vegan pizza with veggies.',
-        image: 'https://images.unsplash.com/photo-1585238342024-78d387f4a707?q=80&w=600&auto=format&fit=crop',
-        rating: 4.6,
-        reviews: '400+ Reviews',
-        sales: '1k',
-        trend: '+15%'
-    },
-];
-
-const promoItems = [
-    {
-        id: 21,
-        name: 'Fish Burger',
-        price: 3.59,
-        description: 'Discounted fish burger.',
-        image: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?q=80&w=600&auto=format&fit=crop',
-        rating: 5.0,
-        reviews: '1k+ Reviews',
-        isPromo: true,
-        discount: '15% Off'
-    },
-    {
-        id: 22,
-        name: 'Double Bur...',
-        price: 3.59,
-        description: 'Double beef patty.',
-        image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=600&auto=format&fit=crop',
-        rating: 5.0,
-        reviews: '1k+ Reviews',
-        isPromo: true,
-        discount: '15% Off'
-    },
-    {
-        id: 23,
-        name: 'Beef Burger',
-        price: 3.59,
-        description: 'Juicy beef burger.',
-        image: 'https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=600&auto=format&fit=crop',
-        rating: 5.0,
-        reviews: '1k+ Reviews',
-        isPromo: true,
-        discount: '15% Off'
-    },
-];
+import { useEffect } from 'react';
+import { useMenuStore } from '@/lib/store/menuStore';
+import { AddCategoryDialog } from './AddCategoryDialog';
+import { AddItemDialog } from './AddItemDialog';
 
 export function MenusView() {
-  const [activeCategory, setActiveCategory] = useState<string | null>('burger');
+  const { categories, items, fetchCategories, fetchItems, isLoading } = useMenuStore();
+  
+  // Track selected category (null = 'ALL')
+  const [activeCategory, setActiveCategory] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Fetch initial data
+  useEffect(() => {
+    fetchCategories(1);
+    fetchItems(1);
+  }, [fetchCategories, fetchItems]);
+
+  // Derived state filtering
+  const filteredItems = items.filter(item => {
+      const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = activeCategory === null || item.categoryId === activeCategory;
+      return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="space-y-8 max-w-[1600px] mx-auto pb-10">
@@ -165,67 +54,66 @@ export function MenusView() {
                 onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <Button className="bg-amber-500 hover:bg-amber-600 text-white font-semibold">
-              <Plus className="h-4 w-4 mr-2" /> Add New Menu
-          </Button>
+          <div className="flex gap-2">
+              <AddCategoryDialog />
+              <AddItemDialog />
+          </div>
        </div>
 
        {/* Categories */}
        <div>
            <div className="flex justify-between items-center mb-4">
-               <h2 className="text-xl font-bold">Category</h2>
-               <Button variant="link" className="text-amber-500">View all</Button>
+               <h2 className="text-xl font-bold">Categories</h2>
            </div>
-           <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-               {categories.map(cat => (
-                   <MenuCategory 
-                        key={cat.id} 
-                        icon={cat.icon} 
-                        label={cat.label} 
-                        isActive={activeCategory === cat.id}
-                        onClick={() => setActiveCategory(cat.id)}
-                   />
-               ))}
+           
+           <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+               {/* "All" Category Pill */}
+               <MenuCategory 
+                    icon={UtensilsCrossed} 
+                    label="All Items" 
+                    isActive={activeCategory === null}
+                    onClick={() => setActiveCategory(null)}
+               />
+               
+               {isLoading && categories.length === 0 ? (
+                   <div className="text-muted-foreground pt-4 pl-4 text-sm">Loading categories...</div>
+               ) : (
+                   categories.map(cat => (
+                       <MenuCategory 
+                            key={cat.id} 
+                            icon={UtensilsCrossed} // Generic icon for live DB categories
+                            label={cat.name} 
+                            isActive={activeCategory === cat.id}
+                            onClick={() => setActiveCategory(cat.id)}
+                       />
+                   ))
+               )}
+               {categories.length === 0 && !isLoading && (
+                   <div className="text-muted-foreground pt-4 pl-4 text-sm italic">No categories created yet.</div>
+               )}
            </div>
        </div>
 
-        {/* Popular This Week (Horizontal Variants) */}
+        {/* Menu Items Grid */}
         <div>
            <div className="flex justify-between items-center mb-4">
-               <h2 className="text-xl font-bold">Popular This Week</h2>
-               <Button variant="link" className="text-amber-500">View all</Button>
+               <h2 className="text-xl font-bold">Menu Items</h2>
            </div>
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-               {popularItems.map(item => (
-                   <MenuItemCard key={item.id} item={item} variant="horizontal" />
-               ))}
-           </div>
-        </div>
 
-        {/* Best Seller (Vertical Cards) */}
-        <div>
-           <div className="flex justify-between items-center mb-4">
-               <h2 className="text-xl font-bold">Best Seller</h2>
-               <Button variant="link" className="text-amber-500">View all</Button>
-           </div>
-           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-               {bestSellers.map(item => (
-                   <MenuItemCard key={item.id} item={item} />
-               ))}
-           </div>
-        </div>
-        
-        {/* Promo (Horizontal again or small cards?) Image shows horizontal-ish properties but styled like Popular */}
-        <div>
-           <div className="flex justify-between items-center mb-4">
-               <h2 className="text-xl font-bold">Promo</h2>
-               <Button variant="link" className="text-amber-500">View all</Button>
-           </div>
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-               {promoItems.map(item => (
-                   <MenuItemCard key={item.id} item={item} variant="horizontal" />
-               ))}
-           </div>
+           {isLoading && items.length === 0 ? (
+               <div className="text-center py-20 text-muted-foreground">Loading menu items...</div>
+           ) : filteredItems.length === 0 ? (
+               <div className="text-center py-20 text-muted-foreground border-2 border-dashed rounded-xl bg-card/50">
+                    No items found. Change filters or add a new menu item.
+               </div>
+           ) : (
+               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+                   {filteredItems.map(item => (
+                       <MenuItemCard key={item.id} item={item as any} /> 
+                       // ^ as any needed temporarily since MenuItemCard props type has hardcoded mock fields like 'reviews' currently. We'll fix it next.
+                   ))}
+               </div>
+           )}
         </div>
     </div>
   );

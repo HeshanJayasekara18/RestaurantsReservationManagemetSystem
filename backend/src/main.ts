@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
+  console.log('Bootstrap started - Checking Dashboard Module');
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({

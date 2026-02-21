@@ -2,8 +2,8 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UseGua
 import { MenuService } from './menu.service';
 import { CreateMenuCategoryDto, CreateMenuItemDto } from './dto/create-menu.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { RequirePermissions } from '../auth/decorators/permissions.decorator';
 
 @Controller('menu')
 export class MenuController {
@@ -12,8 +12,8 @@ export class MenuController {
   // ─── Categories ─────────────────────────────────────────────────────────────
 
   /** ADMIN and MANAGER manage menu categories */
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN', 'MANAGER')
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions('manage_menu')
   @Post('categories')
   createCategory(@Body() dto: CreateMenuCategoryDto) {
     return this.menuService.createCategory(dto);
@@ -25,8 +25,8 @@ export class MenuController {
     return this.menuService.findCategoriesByRestaurant(restaurantId);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN', 'MANAGER')
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions('manage_menu')
   @Delete('categories/:id')
   removeCategory(@Param('id', ParseIntPipe) id: number) {
     return this.menuService.removeCategory(id);
@@ -35,8 +35,8 @@ export class MenuController {
   // ─── Items ───────────────────────────────────────────────────────────────────
 
   /** ADMIN and MANAGER manage menu items */
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN', 'MANAGER')
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions('manage_menu')
   @Post('items')
   createItem(@Body() dto: CreateMenuItemDto) {
     return this.menuService.createItem(dto);
@@ -54,15 +54,15 @@ export class MenuController {
   }
 
   /** KITCHEN can see items but only ADMIN/MANAGER can modify */
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN', 'MANAGER')
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions('manage_menu')
   @Patch('items/:id')
   updateItem(@Param('id', ParseIntPipe) id: number, @Body() dto: Partial<CreateMenuItemDto>) {
     return this.menuService.updateItem(id, dto);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN', 'MANAGER')
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions('manage_menu')
   @Delete('items/:id')
   removeItem(@Param('id', ParseIntPipe) id: number) {
     return this.menuService.removeItem(id);

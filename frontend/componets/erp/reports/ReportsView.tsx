@@ -23,31 +23,29 @@ import { Button } from '@/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/tabs';
 import { DatePickerWithRange } from '@/ui/date-range-picker';
-
-// Mock Data
-const revenueData = [
-  { name: 'Jan', revenue: 4000, orders: 240 },
-  { name: 'Feb', revenue: 3000, orders: 139 },
-  { name: 'Mar', revenue: 2000, orders: 980 },
-  { name: 'Apr', revenue: 2780, orders: 390 },
-  { name: 'May', revenue: 1890, orders: 480 },
-  { name: 'Jun', revenue: 2390, orders: 380 },
-  { name: 'Jul', revenue: 3490, orders: 430 },
-];
-
-const categoryData = [
-  { name: 'Burgers', sales: 1200 },
-  { name: 'Pizza', sales: 900 },
-  { name: 'Beverages', sales: 1500 },
-  { name: 'Desserts', sales: 600 },
-  { name: 'Seafood', sales: 400 },
-];
+import { useReportsStore } from '@/lib/store/reportsStore';
+import { useEffect } from 'react';
 
 export function ReportsView() {
+  const { 
+    revenue, 
+    totalOrders, 
+    activeCustomers, 
+    avgOrderValue, 
+    revenueData, 
+    categoryData, 
+    fetchReports, 
+    isLoading 
+  } = useReportsStore();
+
   const [date, setDate] = useState<DateRange | undefined>({
     from: new Date(2024, 0, 20),
     to: addDays(new Date(2024, 0, 20), 20),
   });
+
+  useEffect(() => {
+    fetchReports();
+  }, [fetchReports]);
 
   return (
     <div className="space-y-6">
@@ -77,8 +75,8 @@ export function ReportsView() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$45,231.89</div>
-            <p className="text-xs text-muted-foreground">+20.1% from last month</p>
+            <div className="text-2xl font-bold">${revenue?.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+            <p className="text-xs text-muted-foreground">Lifetime</p>
           </CardContent>
         </Card>
         <Card>
@@ -87,8 +85,8 @@ export function ReportsView() {
             <ShoppingBag className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+2350</div>
-            <p className="text-xs text-muted-foreground">+180.1% from last month</p>
+            <div className="text-2xl font-bold">{totalOrders?.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">Lifetime</p>
           </CardContent>
         </Card>
         <Card>
@@ -97,8 +95,8 @@ export function ReportsView() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+12,234</div>
-            <p className="text-xs text-muted-foreground">+19% from last month</p>
+            <div className="text-2xl font-bold">{activeCustomers?.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">Total Registered</p>
           </CardContent>
         </Card>
         <Card>
@@ -107,8 +105,8 @@ export function ReportsView() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$34.50</div>
-            <p className="text-xs text-muted-foreground">+4% from last month</p>
+            <div className="text-2xl font-bold">${avgOrderValue?.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+            <p className="text-xs text-muted-foreground">Per Order Average</p>
           </CardContent>
         </Card>
       </div>
@@ -201,12 +199,16 @@ export function ReportsView() {
               </CardHeader>
               <CardContent className="pl-2">
                 <ResponsiveContainer width="100%" height={350}>
-                  <BarChart data={categoryData} layout="vertical">
-                    <XAxis type="number" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis dataKey="name" type="category" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} width={100} />
-                    <Tooltip />
-                    <Bar dataKey="sales" fill="#10b981" radius={[0, 4, 4, 0]} />
-                  </BarChart>
+                  {categoryData.length > 0 ? (
+                    <BarChart data={categoryData} layout="vertical">
+                      <XAxis type="number" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                      <YAxis dataKey="name" type="category" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} width={100} />
+                      <Tooltip />
+                      <Bar dataKey="sales" fill="#10b981" radius={[0, 4, 4, 0]} />
+                    </BarChart>
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-muted-foreground">No category sales data found.</div>
+                  )}
                 </ResponsiveContainer>
               </CardContent>
             </Card>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/auth.store';
 import { useSidebarStore } from '@/lib/store/sidebar.store';
@@ -11,21 +11,32 @@ import { cn } from '@/lib/utils';
 
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  // Using a selector to avoid re-renders if other parts of store change, though auth store is small
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated());
   const isOpen = useSidebarStore((s) => s.isOpen);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted && !isAuthenticated) {
       router.replace('/erp/login');
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, router, mounted]);
+
+  if (!mounted) {
+    return null; // or a generic loading skeleton that matches server
+  }
 
   if (!isAuthenticated) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-gray-950">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
-      </div>
-    );
+     // ... render loading indicator
+     return (
+       <div className="flex h-screen items-center justify-center bg-gray-950">
+         <div className="h-6 w-6 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
+       </div>
+     );
   }
 
   return (

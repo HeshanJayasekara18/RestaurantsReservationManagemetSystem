@@ -1,79 +1,60 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/ui/card';
 import { Badge } from '@/ui/badge';
-import { Button } from '@/ui/button';
 import { Input } from '@/ui/input';
-import { Search, Plus, Filter, Armchair, Users, LayoutGrid } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { TableNode, TableStatus } from './TableNode';
-import { DiningTable, Reservation } from '@/lib/types'; // Assuming types exist
-
-// Mock Data Generator
-const mockTables: (DiningTable & { status: TableStatus; currentReservation?: Reservation })[] = [
-    // Main Hall
-    ...Array.from({ length: 12 }).map((_, i) => ({
-        id: i + 1,
-        restaurantId: 1,
-        tableNumber: 1 + i,
-        capacity: i % 3 === 0 ? 6 : 4,
-        location: 'Main Hall',
-        isActive: true,
-        status: (i === 1 || i === 5 ? 'OCCUPIED' : i === 3 ? 'RESERVED' : 'AVAILABLE') as TableStatus,
-        currentReservation: i === 1 ? {
-            id: 101,
-            customer: { firstName: 'John', lastName: 'Doe' } as any,
-            startTime: '19:00',
-            endTime: '21:00',
-            guestCount: 4,
-        } as any : undefined
-    })),
-    // Patio
-    ...Array.from({ length: 8 }).map((_, i) => ({
-        id: 20 + i,
-        restaurantId: 1,
-        tableNumber: 20 + i,
-        capacity: 2,
-        location: 'Patio',
-        isActive: true,
-        status: (i < 3 ? 'OCCUPIED' : 'AVAILABLE') as TableStatus,
-    })),
-    // Private
-    ...Array.from({ length: 3 }).map((_, i) => ({
-        id: 50 + i,
-        restaurantId: 1,
-        tableNumber: 50 + i,
-        capacity: 8,
-        location: 'Private Room',
-        isActive: true,
-        status: 'RESERVED' as TableStatus,
-         currentReservation: {
-            id: 102,
-            customer: { firstName: 'VIP', lastName: 'Guest' } as any,
-            startTime: '20:00',
-            endTime: '23:00',
-            guestCount: 8,
-        } as any
-    })),
-];
+import { DiningTable, Reservation } from '@/lib/types';
+import { useTablesStore } from '@/lib/store/tablesStore';
+import { AddTableDialog } from './AddTableDialog';
 
 export function TablesView() {
+    const { tables, activeReservations, fetchTables, fetchReservations, isLoading } = useTablesStore();
     const [searchTerm, setSearchTerm] = useState('');
     const [activeLocation, setActiveLocation] = useState('ALL');
 
-    const filteredTables = mockTables.filter(table => {
+    useEffect(() => {
+        const restaurantId = 1; // single-tenant setup
+        fetchTables(restaurantId);
+        fetchReservations(restaurantId);
+    }, [fetchTables, fetchReservations]);
+
+    // Enhance tables with real-time status based on active reservations
+    const enhancedTables = tables.map((table) => {
+        // Find if there's an ongoing reservation (very simplified logic for now)
+        // In a real app we would check `reservationDate` and `startTime` vs `new Date()`
+        const currentRes = activeReservations.find(r => r.tableId === table.id && r.status === 'CONFIRMED');
+        
+        // Simple logic: if there is any confirmed reservation today, mark as RESERVED (or OCCUPIED if time matches)
+        // For demonstration, we'll mark as RESERVED if there's a reservation, else AVAILABLE
+        let status: TableStatus = table.isActive ? 'AVAILABLE' : 'MAINTENANCE';
+        if (currentRes) {
+            status = 'RESERVED'; // Or OCCUPIED depending on time
+        }
+
+        return {
+            ...table,
+            status: status as TableStatus,
+            currentReservation: currentRes
+        };
+    });
+
+    const filteredTables = enhancedTables.filter(table => {
         const matchesSearch = table.tableNumber.toString().includes(searchTerm) || table.location?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesLocation = activeLocation === 'ALL' || table.location === activeLocation;
         return matchesSearch && matchesLocation;
     });
 
-    const locations = ['ALL', 'Main Hall', 'Patio', 'Private Room'];
+    // Dynamically get unique locations from tables
+    const locations = ['ALL', ...Array.from(new Set(tables.map(t => t.location).filter(Boolean))) as string[]];
 
     // Stats
-    const total = mockTables.length;
-    const available = mockTables.filter(t => t.status === 'AVAILABLE').length;
-    const occupied = mockTables.filter(t => t.status === 'OCCUPIED').length;
+    const total = enhancedTables.length;
+    const available = enhancedTables.filter(t => t.status === 'AVAILABLE').length;
+    const occupied = enhancedTables.filter(t => t.status === 'OCCUPIED').length;
 
     return (
         <div className="space-y-6 h-[calc(100vh-8rem)] flex flex-col">
@@ -90,9 +71,7 @@ export function TablesView() {
                         <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20">{occupied} Occupied</Badge>
                         <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/20">{total - available - occupied} Reserved</Badge>
                     </div>
-                    <Button className="bg-primary hover:bg-primary/90">
-                        <Plus className="h-4 w-4 mr-2" /> Add Table
-                    </Button>
+                    <AddTableDialog />
                 </div>
             </div>
 
@@ -128,18 +107,28 @@ export function TablesView() {
                  </div>
 
                  <div className="flex-1 overflow-auto p-8 bg-grid-slate-900/[0.04] dark:bg-grid-slate-400/[0.05]">
-                    {/* Render Tables Grouped by Zone if ALL, or just the zone */}
-                    
-                    <div className="flex flex-wrap gap-12 justify-center content-start min-h-full">
-                         {filteredTables.map((table) => (
-                             <TableNode 
-                                key={table.id} 
-                                table={table} 
-                                status={table.status} 
-                                currentReservation={table.currentReservation}
-                             />
-                         ))}
-                    </div>
+                    {isLoading ? (
+                        <div className="flex items-center justify-center h-full text-muted-foreground">
+                            Loading tables...
+                        </div>
+                    ) : (
+                        <div className="flex flex-wrap gap-12 justify-center content-start min-h-full">
+                            {filteredTables.length === 0 ? (
+                                <div className="text-center text-muted-foreground mt-20">
+                                    No tables found. Add a table to get started.
+                                </div>
+                            ) : (
+                                filteredTables.map((table) => (
+                                    <TableNode 
+                                        key={table.id} 
+                                        table={table} 
+                                        status={table.status} 
+                                        currentReservation={table.currentReservation}
+                                    />
+                                ))
+                            )}
+                        </div>
+                    )}
                  </div>
             </Card>
         </div>

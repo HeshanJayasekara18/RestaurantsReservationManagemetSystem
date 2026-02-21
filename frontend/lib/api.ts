@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { Customer, Staff } from './types';
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:7000',
@@ -48,7 +49,13 @@ export const authApi = {
   getMe: () => api.get('/auth/me'),
   createStaff: (data: { name: string; email: string; password: string; role?: string }) =>
     api.post('/auth/staff', data),
-  listStaff: () => api.get('/auth/staff'),
+  listStaff: () => api.get<Staff[]>('/auth/staff'),
+  updateStaff: (id: number, data: { isActive?: boolean; role?: string }) =>
+    api.patch(`/auth/staff/${id}`, data),
+  deleteStaff: (id: number) => api.delete(`/auth/staff/${id}`),
+  getRoles: () => api.get<any[]>('/auth/roles'),
+  updateRolePermissions: (role: string, permissions: string[]) => 
+    api.patch(`/auth/roles/${role}/permissions`, { permissions }),
 };
 
 export const reservationsApi = {
@@ -77,14 +84,30 @@ export const menuApi = {
   createItem: (data: Record<string, unknown>) => api.post('/menu/items', data),
   updateItem: (id: number, data: Record<string, unknown>) => api.patch(`/menu/items/${id}`, data),
   removeItem: (id: number) => api.delete(`/menu/items/${id}`),
+  uploadImage: async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post<{ imageUrl: string }>('/upload/image', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
 };
 
 export const customersApi = {
-  list: () => api.get('/customers'),
-  getOne: (id: number) => api.get(`/customers/${id}`),
+  list: () => api.get<Customer[]>('/customers'),
+  getOne: (id: number) => api.get<Customer>(`/customers/${id}`),
+  create: (data: Partial<Customer>) => api.post<Customer>('/customers', data),
+  update: (id: number, data: Partial<Customer>) => api.patch<Customer>(`/customers/${id}`, data),
+  remove: (id: number) => api.delete(`/customers/${id}`),
 };
 
 export const restaurantsApi = {
   list: () => api.get('/restaurants'),
   getOne: (id: number) => api.get(`/restaurants/${id}`),
+};
+
+export const dashboardApi = {
+  getStats: () => api.get('/dashboard/stats'),
 };

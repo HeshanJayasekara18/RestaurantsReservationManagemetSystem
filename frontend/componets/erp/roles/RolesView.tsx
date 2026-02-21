@@ -1,17 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { 
-  Shield, 
-  Check, 
-  X, 
-  Users, 
-  Lock,
-  Edit,
-  Save
-} from 'lucide-react';
+import { Shield, Check, X, Users, Lock, Edit, Save } from 'lucide-react';
 import { Button } from '@/ui/button';
 import { Badge } from '@/ui/badge';
+import { useRolesStore, Permission, RoleDefinition } from '../../../lib/store/rolesStore';
+import { useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -31,48 +25,8 @@ import {
 import { Switch } from '../../../ui/switch';
 import { toast } from 'sonner';
 
-// Mock Data for Roles & Permissions
-// In a real app, these would come from the backend or be derived from guards
-type Permission = 'manage_staff' | 'view_reports' | 'manage_menu' | 'manage_tables' | 'manage_reservations' | 'view_orders';
-
-interface RoleDefinition {
-  code: string;
-  name: string;
-  description: string;
-  usersCount: number;
-  permissions: Permission[];
-}
-
-const initialRoles: RoleDefinition[] = [
-  {
-    code: 'ADMIN',
-    name: 'Administrator',
-    description: 'Full system access. Can manage staff, reports, and settings.',
-    usersCount: 2,
-    permissions: ['manage_staff', 'view_reports', 'manage_menu', 'manage_tables', 'manage_reservations', 'view_orders'],
-  },
-  {
-    code: 'MANAGER',
-    name: 'Manager',
-    description: 'Operational control. Can manage day-to-day activities but restricted from sensitive actions.',
-    usersCount: 3,
-    permissions: ['view_reports', 'manage_menu', 'manage_tables', 'manage_reservations', 'view_orders'],
-  },
-  {
-    code: 'WAITER',
-    name: 'Waiter',
-    description: 'Front of house staff. Can manage reservations and take orders.',
-    usersCount: 8,
-    permissions: ['manage_reservations', 'view_orders'],
-  },
-  {
-    code: 'KITCHEN',
-    name: 'Kitchen Staff',
-    description: 'Back of house staff. Read-only access to orders queue.',
-    usersCount: 5,
-    permissions: ['view_orders'],
-  },
-];
+// Available permissions in the system.
+// This mapping matches the backend guards and schema values.
 
 const allPermissions: { key: Permission; label: string }[] = [
   { key: 'manage_staff', label: 'Manage Staff (Add/Remove)' },
@@ -84,9 +38,13 @@ const allPermissions: { key: Permission; label: string }[] = [
 ];
 
 export function RolesView() {
-  const [roles, setRoles] = useState<RoleDefinition[]>(initialRoles);
+  const { roles, loading, fetchRoles, updateRolePermissions } = useRolesStore();
   const [editingRole, setEditingRole] = useState<string | null>(null);
   const [tempPermissions, setTempPermissions] = useState<Permission[]>([]);
+
+  useEffect(() => {
+    fetchRoles();
+  }, [fetchRoles]);
 
   const handleEditClick = (role: RoleDefinition) => {
     if (role.code === 'ADMIN') {
@@ -105,10 +63,15 @@ export function RolesView() {
     }
   };
 
-  const handleSave = () => {
-    setRoles(roles.map(r => r.code === editingRole ? { ...r, permissions: tempPermissions } : r));
-    setEditingRole(null);
-    toast.success("Role permissions updated successfully");
+  const handleSave = async () => {
+    if (!editingRole) return;
+    try {
+      await updateRolePermissions(editingRole, tempPermissions);
+      setEditingRole(null);
+      toast.success('Role permissions updated successfully');
+    } catch {
+      toast.error('Failed to update Role');
+    }
   };
 
   const handleCancel = () => {
@@ -191,20 +154,20 @@ export function RolesView() {
                         <Button variant="default" className="flex-1" onClick={handleSave}>
                             <Save className="h-4 w-4 mr-2" /> Save Changes
                         </Button>
-                        <Button variant="outline" className="flex-1" onClick={handleCancel}>
-                            Cancel
-                        </Button>
-                    </div>
-                ) : (
-                     <Button 
-                        variant="outline" 
-                        className="w-full text-muted-foreground hover:text-foreground"
-                        disabled={role.code === 'ADMIN'}
-                        onClick={() => handleEditClick(role)}
-                    >
-                        <Edit className="h-4 w-4 mr-2" /> 
-                        {role.code === 'ADMIN' ? 'Locked (System Role)' : 'Edit Permissions'}
-                    </Button>
+                      <Button variant="outline" className="flex-1" onClick={handleCancel} disabled={loading}>
+                          Cancel
+                      </Button>
+                  </div>
+              ) : (
+                   <Button 
+                      variant="outline" 
+                      className="w-full text-muted-foreground hover:text-foreground"
+                      disabled={role.code === 'ADMIN' || loading}
+                      onClick={() => handleEditClick(role)}
+                  >
+                      <Edit className="h-4 w-4 mr-2" /> 
+                      {role.code === 'ADMIN' ? 'Locked (System Role)' : 'Edit Permissions'}
+                  </Button>
                 )}
             </CardFooter>
           </Card>

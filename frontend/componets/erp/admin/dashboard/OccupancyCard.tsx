@@ -3,7 +3,18 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/ui/card';
 import { Progress } from '@/ui/progress';
 
-export function OccupancyCard() {
+interface OccupancyCardProps {
+  occupancy: {
+    occupied: number;
+    total: number;
+  };
+}
+
+export function OccupancyCard({ occupancy }: OccupancyCardProps) {
+  const percentage = occupancy.total > 0 
+    ? Math.round((occupancy.occupied / occupancy.total) * 100) 
+    : 0;
+
   return (
     <Card className="col-span-4 lg:col-span-1 bg-card border-border">
       <CardHeader>
@@ -11,38 +22,31 @@ export function OccupancyCard() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <div className="space-y-2">
+          {/* Detailed breakdown can be re-enabled when backend supports zones */}
+          {/* <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Main Hall</span>
               <span className="text-foreground font-medium">85%</span>
             </div>
             <Progress value={85} className="h-2 bg-secondary" indicatorClassName="bg-amber-500" />
-          </div>
+          </div> */}
 
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Patio</span>
-              <span className="text-foreground font-medium">45%</span>
+              <span className="text-muted-foreground">Total Capacity</span>
+              <span className="text-foreground font-medium">{percentage}%</span>
             </div>
-            <Progress value={45} className="h-2 bg-secondary" indicatorClassName="bg-green-500" />
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Private Rooms</span>
-              <span className="text-foreground font-medium">20%</span>
-            </div>
-            <Progress value={20} className="h-2 bg-secondary" indicatorClassName="bg-blue-500" />
+            <Progress value={percentage} className="h-2 bg-secondary" indicatorClassName="bg-amber-500" />
           </div>
 
           <div className="mt-6 pt-4 border-t border-border">
             <div className="flex justify-between items-center">
                 <div>
-                    <p className="text-2xl font-bold text-foreground">24/32</p>
-                    <p className="text-xs text-muted-foreground">Tables Occupied</p>
+                    <p className="text-2xl font-bold text-foreground">{occupancy.occupied}/{occupancy.total}</p>
+                    <p className="text-xs text-muted-foreground">Seats/People Occupied</p>
                 </div>
                 <div className="h-10 w-10 text-xs flex items-center justify-center rounded-full border-2 border-amber-500 text-amber-500">
-                    75%
+                    {percentage}%
                 </div>
             </div>
           </div>

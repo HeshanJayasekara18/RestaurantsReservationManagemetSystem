@@ -12,6 +12,8 @@ import { ReservationsModule } from './reservations/reservations.module';
 import { MenuModule } from './menu/menu.module';
 import { TablesModule } from './tables/tables.module';
 import { AuthModule } from './auth/auth.module';
+import { UploadModule } from './upload/upload.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -24,8 +26,11 @@ import { AuthModule } from './auth/auth.module';
     ReservationsModule,
     MenuModule,
     TablesModule,
+    DashboardModule,
+    UploadModule,
   ],
   controllers: [AppController, ControllerController],
   providers: [AppService, ServiceService],
 })
-export class AppModule {}
+export class AppModule {} 
+// Force rebuild for dashboard module registration
