@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTheme } from "next-themes";
 
 interface Particle {
   id: number;
@@ -13,8 +14,11 @@ interface Particle {
 
 export function FloatingParticles() {
   const [particles, setParticles] = useState<Particle[]>([]);
+  const { theme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     // Generate random particles
     const newParticles: Particle[] = Array.from({ length: 50 }, (_, i) => ({
       id: i,
@@ -26,6 +30,8 @@ export function FloatingParticles() {
     }));
     setParticles(newParticles);
   }, []);
+
+  if (!mounted || (resolvedTheme !== "dark")) return null;
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">

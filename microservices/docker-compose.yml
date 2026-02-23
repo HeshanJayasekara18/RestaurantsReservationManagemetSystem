@@ -1,0 +1,70 @@
+# ============================================================
+# docker-compose.yml
+# Run all 4 services locally with one command:
+#   docker-compose up --build
+# ============================================================
+
+version: '3.9'
+
+services:
+
+  # ─── Auth Service ──────────────────────────────────────────
+  auth-service:
+    build:
+      context: ./auth-service
+    container_name: auth-service
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: "3001"
+      DATABASE_URL: ${DATABASE_URL}
+      DIRECT_URL: ${DIRECT_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN_SECONDS: "604800"
+    restart: unless-stopped
+
+  # ─── Customer Service ──────────────────────────────────────
+  customer-service:
+    build:
+      context: ./customer-service
+    container_name: customer-service
+    ports:
+      - "3002:3002"
+    environment:
+      PORT: "3002"
+      DATABASE_URL: ${DATABASE_URL}
+      DIRECT_URL: ${DIRECT_URL}
+      JWT_SECRET: ${JWT_SECRET}
+    restart: unless-stopped
+
+  # ─── Reservation Service ───────────────────────────────────
+  reservation-service:
+    build:
+      context: ./reservation-service
+    container_name: reservation-service
+    ports:
+      - "3003:3003"
+    environment:
+      PORT: "3003"
+      DATABASE_URL: ${DATABASE_URL}
+      DIRECT_URL: ${DIRECT_URL}
+      JWT_SECRET: ${JWT_SECRET}
+    restart: unless-stopped
+
+  # ─── API Gateway ───────────────────────────────────────────
+  api-gateway:
+    build:
+      context: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: "3000"
+      AUTH_SERVICE_URL: "http://auth-service:3001"
+      CUSTOMER_SERVICE_URL: "http://customer-service:3002"
+      RESERVATION_SERVICE_URL: "http://reservation-service:3003"
+    depends_on:
+      - auth-service
+      - customer-service
+      - reservation-service
+    restart: unless-stopped
